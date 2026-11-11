@@ -5,16 +5,42 @@ import {
   formatUyuCurrency,
   validateBookingInput,
   buildWhatsAppUrl,
+  isSecretWordMatch,
   STUDIO_INFO,
+  DEFAULT_STUDIO_CONFIG,
 } from './bookingLogic';
 
-test('calculateServicePrice returns accurate UYU price for each service and vehicle category', () => {
+test('calculateServicePrice returns accurate UYU price for default and custom services', () => {
   assert.equal(calculateServicePrice('ceramico', 'hatch_sedan'), 14500);
   assert.equal(calculateServicePrice('ceramico', 'suv'), 16900);
   assert.equal(calculateServicePrice('pulido', 'hatch_sedan'), 8900);
   assert.equal(calculateServicePrice('interior', 'hatch_sedan'), 5800);
   assert.equal(calculateServicePrice('preventa', 'hatch_sedan'), 9500);
   assert.equal(calculateServicePrice('preventa', 'suv'), 9500);
+
+  const customServices = [
+    ...DEFAULT_STUDIO_CONFIG.services,
+    {
+      id: 'ppf-frontal',
+      iconType: 'ceramico' as const,
+      title: 'PPF Frontal TPU',
+      shortDescription: 'Film protector de poliuretano regenerativo.',
+      fullDescription: 'Protección física contra impactos de piedras en ruta.',
+      duration: '3 días en estudio',
+      warranty: 'Garantía 5 años',
+      basePriceUyu: { hatch_sedan: 32000, suv: 36000, pickup: 39000 },
+      features: ['TPU 200 micras self-healing'],
+      imageAsset: '/assets/aistudio/_D1D068DB-A28C-42F8-B308-54C2B473D4D7__1805113c.png',
+      imageCropStyle: { objectPosition: 'center', scale: 1, origin: '-308% -8%' },
+    },
+  ];
+  assert.equal(calculateServicePrice('ppf-frontal', 'suv', customServices), 36000);
+});
+
+test('isSecretWordMatch detects secret keywords detailing and admin', () => {
+  assert.equal(isSecretWordMatch('xyzdetailing'), true);
+  assert.equal(isSecretWordMatch('holaADMIN'), true);
+  assert.equal(isSecretWordMatch('detailin'), false);
 });
 
 test('formatUyuCurrency formats amounts clearly', () => {

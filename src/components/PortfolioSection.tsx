@@ -1,63 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUpRight, X } from 'lucide-react';
-import { STUDIO_INFO } from '../utils/bookingLogic';
+import { PortfolioWork, StudioInfoConfig } from '../utils/bookingLogic';
 
-interface PortfolioWork {
-  id: string;
-  vehicle: string;
-  serviceCategory: 'ceramico' | 'pulido' | 'interior';
-  serviceName: string;
-  outcome: string;
-  assetPath: string;
-  leftOffset: string;
-  topOffset: string;
+interface PortfolioSectionProps {
+  portfolio: PortfolioWork[];
+  studioInfo: StudioInfoConfig;
 }
 
 const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
-
-const PORTFOLIO_WORKS: PortfolioWork[] = [
-  {
-    id: 'peugeot-208-gt',
-    vehicle: 'Peugeot 208 GT Negro',
-    serviceCategory: 'ceramico',
-    serviceName: 'Tratamiento Cerámico 9H',
-    outcome: 'Corrección de barniz + sellado vitrificado 36 meses con efecto espejo profundo.',
-    assetPath: '/assets/aistudio/_D1D068DB-A28C-42F8-B308-54C2B473D4D7__1805113c.png',
-    leftOffset: '-310%',
-    topOffset: '-8%',
-  },
-  {
-    id: 'golf-gti',
-    vehicle: 'Volkswagen Golf GTI',
-    serviceCategory: 'pulido',
-    serviceName: 'Pulido de Pintura Multi-Etapa',
-    outcome: 'Eliminación del 95% de swirls bajo iluminación hexagonal y sellado sintético.',
-    assetPath: '/assets/aistudio/_D1D068DB-A28C-42F8-B308-54C2B473D4D7__1805113c.png',
-    leftOffset: '-2%',
-    topOffset: '-8%',
-  },
-  {
-    id: 'bmw-x1',
-    vehicle: 'BMW X1 Alpine White',
-    serviceCategory: 'ceramico',
-    serviceName: 'Tratamiento Cerámico Integral',
-    outcome: 'Descontaminado férrico y protección contra rayos UV, lluvia ácida y suciedad.',
-    assetPath: '/assets/aistudio/_98C8490D-A956-4363-B46B-8C3DCD321928__8e02e82e.png',
-    leftOffset: '-206%',
-    topOffset: '-8%',
-  },
-  {
-    id: 'mini-countryman',
-    vehicle: 'MINI Cooper S Countryman',
-    serviceCategory: 'interior',
-    serviceName: 'Detailing Interior + Abrillantado',
-    outcome: 'Higienización al vapor de cabina, nutrición de cueros y sellado exterior.',
-    assetPath: '/assets/aistudio/_D1D068DB-A28C-42F8-B308-54C2B473D4D7__1805113c.png',
-    leftOffset: '-206%',
-    topOffset: '-106%',
-  },
-];
 
 const STUDIO_STEPS = [
   {
@@ -82,14 +33,17 @@ const STUDIO_STEPS = [
   },
 ];
 
-export const PortfolioSection: React.FC = () => {
+export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
+  portfolio,
+  studioInfo,
+}) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'ceramico' | 'pulido' | 'interior'>('all');
   const [selectedWork, setSelectedWork] = useState<PortfolioWork | null>(null);
 
   const filteredWorks =
     activeFilter === 'all'
-      ? PORTFOLIO_WORKS
-      : PORTFOLIO_WORKS.filter((item) => item.serviceCategory === activeFilter);
+      ? portfolio
+      : portfolio.filter((item) => item.serviceCategory === activeFilter);
 
   return (
     <section id="trabajos" className="bg-neutral-950 py-16 sm:py-24 border-b border-white/10">
@@ -109,7 +63,7 @@ export const PortfolioSection: React.FC = () => {
               RESULTADOS REALES EN MONTEVIDEO.
             </h2>
             <p className="text-sm sm:text-base text-neutral-400 font-light mt-3 max-w-xl">
-              Trabajos documentados en nuestro estudio de {STUDIO_INFO.address.split(',')[0]}.
+              Trabajos documentados en nuestro estudio de {studioInfo.address.split(',')[0]}.
             </p>
           </div>
 
@@ -185,7 +139,7 @@ export const PortfolioSection: React.FC = () => {
 
                 <div className="p-6">
                   <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-400 mb-1.5">
-                    {work.serviceName} · {STUDIO_INFO.instagramHandle}
+                    {work.serviceName} · {studioInfo.instagramHandle}
                   </p>
                   <h3 className="font-display uppercase text-2xl font-bold text-white tracking-tight">
                     {work.vehicle}
@@ -286,7 +240,7 @@ export const PortfolioSection: React.FC = () => {
                 </p>
 
                 <div className="flex items-center justify-between pt-4 border-t border-white/10 text-xs text-neutral-400">
-                  <span>Estudio: {STUDIO_INFO.address}</span>
+                  <span>Estudio: {studioInfo.address}</span>
                   <button
                     type="button"
                     onClick={() => setSelectedWork(null)}

@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { STUDIO_INFO } from '../utils/bookingLogic';
+import { StudioInfoConfig } from '../utils/bookingLogic';
 
 interface NavbarProps {
+  studioInfo: StudioInfoConfig;
   onPrimaryAction: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onPrimaryAction }) => {
+export const Navbar: React.FC<NavbarProps> = ({ studioInfo, onPrimaryAction }) => {
   return (
     <motion.header
       initial={{ opacity: 0, y: -12 }}
@@ -27,7 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPrimaryAction }) => {
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-white/25 group-hover:scale-105 transition-transform duration-200 shrink-0"
           />
           <span className="font-display text-lg sm:text-xl font-bold tracking-[0.14em] uppercase text-white">
-            {STUDIO_INFO.name}
+            {studioInfo.name}
           </span>
         </a>
 

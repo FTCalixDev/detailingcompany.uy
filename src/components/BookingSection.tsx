@@ -2,23 +2,28 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUpRight, CheckCircle2, Clock, MapPin, MessageCircle, Phone } from 'lucide-react';
 import {
-  SERVICES,
   ServiceItem,
   VehicleCategory,
-  VEHICLE_CATEGORY_LABELS,
+  VehicleCategoryItem,
+  StudioAddon,
+  StudioInfoConfig,
   BookingFormInput,
   ConfirmedBooking,
-  STUDIO_INFO,
   getServiceById,
   calculateServicePrice,
+  getCategoryLabel,
   formatUyuCurrency,
   validateBookingInput,
   buildWhatsAppUrl,
 } from '../utils/bookingLogic';
 
 interface BookingSectionProps {
-  selectedServiceId: ServiceItem['id'];
-  onChangeServiceId: (id: ServiceItem['id']) => void;
+  services: ServiceItem[];
+  vehicleCategories: VehicleCategoryItem[];
+  addons: StudioAddon[];
+  studioInfo: StudioInfoConfig;
+  selectedServiceId: string;
+  onChangeServiceId: (id: string) => void;
   selectedCategory: VehicleCategory;
   onChangeCategory: (category: VehicleCategory) => void;
   confirmedBookings: ConfirmedBooking[];
@@ -27,20 +32,11 @@ interface BookingSectionProps {
 
 const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-const STUDIO_ADDONS = [
-  {
-    id: 'parabrisas',
-    label: 'Sellado Hidrofóbico de Parabrisas',
-    priceUyu: 1400,
-  },
-  {
-    id: 'motor',
-    label: 'Detallado y Acondicionado de Motor a Vapor',
-    priceUyu: 1800,
-  },
-];
-
 export const BookingSection: React.FC<BookingSectionProps> = ({
+  services,
+  vehicleCategories,
+  addons,
+  studioInfo,
   selectedServiceId,
   onChangeServiceId,
   selectedCategory,
@@ -56,10 +52,10 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
   const [errors, setErrors] = useState<Partial<Record<keyof BookingFormInput, string>>>({});
   const [latestConfirmed, setLatestConfirmed] = useState<ConfirmedBooking | null>(null);
 
-  const currentService = getServiceById(selectedServiceId);
-  const basePrice = calculateServicePrice(selectedServiceId, selectedCategory);
+  const currentService = getServiceById(selectedServiceId, services);
+  const basePrice = calculateServicePrice(selectedServiceId, selectedCategory, services);
   const addonsTotal = selectedAddons.reduce((sum, id) => {
-    const found = STUDIO_ADDONS.find((a) => a.id === id);
+    const found = addons.find((a) => a.id === id);
     return sum + (found ? found.priceUyu : 0);
   }, 0);
   const currentPrice = basePrice + addonsTotal;
@@ -89,21 +85,25 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
     }
 
     setErrors({});
-    const addonNames = STUDIO_ADDONS.filter((a) => selectedAddons.includes(a.id)).map(
-      (a) => a.label
-    );
+    const addonNames = addons
+      .filter((a) => selectedAddons.includes(a.id))
+      .map((a) => a.label);
     const combinedTitle =
       addonNames.length > 0
         ? `${currentService.title} + ${addonNames.join(', ')}`
         : currentService.title;
 
+    const categoryLabel = getCategoryLabel(selectedCategory, vehicleCategories);
+
     const whatsappUrl = buildWhatsAppUrl({
       serviceTitle: combinedTitle,
       vehicleCategory: selectedCategory,
+      vehicleCategoryLabel: categoryLabel,
       vehicleModel: input.vehicleModel,
       clientName: input.clientName,
       preferredDate: input.preferredDate,
       estimatedPriceUyu: currentPrice,
+      phoneInternational: studioInfo.phoneInternational,
     });
 
     const newBooking: ConfirmedBooking = {
@@ -140,7 +140,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
             AGENDAR TURNO EN MONTEVIDEO.
           </h2>
           <p className="text-sm sm:text-base text-neutral-400 font-light mt-3 max-w-xl">
-            Completá los datos de tu vehículo para cotizar y coordinar tu ingreso en nuestro estudio de Duvimioso Terra 2341.
+            Completá los datos de tu vehículo para cotizar y coordinar tu ingreso en nuestro estudio de {studioInfo.address}.
           </p>
         </motion.div>
 
@@ -169,12 +169,12 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                 <select
                   id="booking-service"
                   value={selectedServiceId}
-                  onChange={(e) => onChangeServiceId(e.target.value as ServiceItem['id'])}
+                  onChange={(e) => onChangeServiceId(e.target.value)}
                   className="w-full min-h-[46px] px-4 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white focus:outline-none focus:border-white transition-colors"
                 >
-                  {SERVICES.map((s) => (
+                  {services.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.title} — {formatUyuCurrency(s.basePriceUyu[selectedCategory])} UYU
+                      {s.title} — {formatUyuCurrency(calculateServicePrice(s.id, selectedCategory, services))} UYU
                     </option>
                   ))}
                 </select>
@@ -185,58 +185,60 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                 <span className="block text-xs uppercase tracking-wider font-medium text-neutral-300 mb-2">
                   Porte del vehículo
                 </span>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['hatch_sedan', 'suv', 'pickup'] as VehicleCategory[]).map((cat) => (
+                <div className="flex flex-wrap gap-2">
+                  {vehicleCategories.map((cat) => (
                     <button
-                      key={cat}
+                      key={cat.id}
                       type="button"
-                      onClick={() => onChangeCategory(cat)}
-                      className={`min-h-[42px] px-3 py-2 rounded-full text-xs font-semibold border transition-colors whitespace-nowrap truncate cursor-pointer ${
-                        selectedCategory === cat
+                      onClick={() => onChangeCategory(cat.id)}
+                      className={`flex-1 min-w-[110px] min-h-[42px] px-3 py-2 rounded-full text-xs font-semibold border transition-colors whitespace-nowrap truncate cursor-pointer ${
+                        selectedCategory === cat.id
                           ? 'bg-white text-black border-white'
                           : 'bg-black text-neutral-400 border-white/15 hover:text-white'
                       }`}
                     >
-                      {VEHICLE_CATEGORY_LABELS[cat]}
+                      {cat.label}
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Optional Studio Add-ons */}
-              <div>
-                <span className="block text-xs uppercase tracking-wider font-medium text-neutral-300 mb-2">
-                  Adicionales de estudio (opcional)
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {STUDIO_ADDONS.map((addon) => {
-                    const checked = selectedAddons.includes(addon.id);
-                    return (
-                      <label
-                        key={addon.id}
-                        className={`min-h-[46px] px-3.5 py-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
-                          checked
-                            ? 'bg-neutral-900 border-white text-white'
-                            : 'bg-black border-white/15 text-neutral-300 hover:border-white/30'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggleAddon(addon.id)}
-                            className="accent-white w-4 h-4 rounded shrink-0"
-                          />
-                          <span>{addon.label}</span>
-                        </div>
-                        <span className="font-semibold text-white tabular-nums shrink-0">
-                          +{formatUyuCurrency(addon.priceUyu)}
-                        </span>
-                      </label>
-                    );
-                  })}
+              {addons.length > 0 && (
+                <div>
+                  <span className="block text-xs uppercase tracking-wider font-medium text-neutral-300 mb-2">
+                    Adicionales de estudio (opcional)
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {addons.map((addon) => {
+                      const checked = selectedAddons.includes(addon.id);
+                      return (
+                        <label
+                          key={addon.id}
+                          className={`min-h-[46px] px-3.5 py-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
+                            checked
+                              ? 'bg-neutral-900 border-white text-white'
+                              : 'bg-black border-white/15 text-neutral-300 hover:border-white/30'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleAddon(addon.id)}
+                              className="accent-white w-4 h-4 rounded shrink-0"
+                            />
+                            <span>{addon.label}</span>
+                          </div>
+                          <span className="font-semibold text-white tabular-nums shrink-0">
+                            +{formatUyuCurrency(addon.priceUyu)}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Client Name & Phone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -347,7 +349,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
               <div className="p-5 rounded-xl bg-black border border-white/15 flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-neutral-300 font-medium">
-                    {currentService.title} · {VEHICLE_CATEGORY_LABELS[selectedCategory]}
+                    {currentService.title} · {getCategoryLabel(selectedCategory, vehicleCategories)}
                   </p>
                   <p className="text-xs text-neutral-400 mt-1">
                     Tiempo estimado: {currentService.duration} · {currentService.warranty}
@@ -418,7 +420,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                     </p>
                     <p>
                       <span className="text-neutral-400">Vehículo:</span>{' '}
-                      {latestConfirmed.vehicleModel} ({VEHICLE_CATEGORY_LABELS[latestConfirmed.vehicleCategory]})
+                      {latestConfirmed.vehicleModel} ({getCategoryLabel(latestConfirmed.vehicleCategory, vehicleCategories)})
                     </p>
                     <p>
                       <span className="text-neutral-400">Fecha solicitada:</span>{' '}
@@ -445,13 +447,13 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
               <div className="flex items-center gap-3.5">
                 <img
                   src="/assets/aistudio/_D7A35198-53D8-41F5-81EF-65BEE1C9E390__e118badc.png"
-                  alt="Logo Detailing Company"
+                  alt={`Logo ${studioInfo.name}`}
                   referrerPolicy="no-referrer"
                   className="w-12 h-12 rounded-full object-cover border border-white/20 shrink-0"
                 />
                 <div>
                   <h3 className="font-display uppercase text-xl font-bold text-white tracking-wide">
-                    ESTUDIO DETAILING COMPANY
+                    ESTUDIO {studioInfo.name}
                   </h3>
                   <p className="text-xs text-neutral-400">
                     Atención personalizada con agenda previa
@@ -466,7 +468,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                     <p className="font-semibold text-white uppercase tracking-wider">
                       Ubicación en Montevideo
                     </p>
-                    <p className="text-neutral-400 mt-1">{STUDIO_INFO.address}</p>
+                    <p className="text-neutral-400 mt-1">{studioInfo.address}</p>
                   </div>
                 </div>
 
@@ -476,7 +478,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                     <p className="font-semibold text-white uppercase tracking-wider">
                       Horario de Estudio
                     </p>
-                    <p className="text-neutral-400 mt-1 tabular-nums">{STUDIO_INFO.hours}</p>
+                    <p className="text-neutral-400 mt-1 tabular-nums">{studioInfo.hours}</p>
                   </div>
                 </div>
 
@@ -487,7 +489,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                       WhatsApp Directo
                     </p>
                     <p className="text-neutral-400 mt-1 tabular-nums">
-                      +598 99 050 602 ({STUDIO_INFO.phoneDisplay})
+                      +{studioInfo.phoneInternational} ({studioInfo.phoneDisplay})
                     </p>
                   </div>
                 </div>

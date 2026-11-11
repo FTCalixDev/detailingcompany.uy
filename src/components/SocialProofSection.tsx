@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Star, CheckCircle2, ChevronDown } from 'lucide-react';
-import { STUDIO_INFO } from '../utils/bookingLogic';
+import { StudioInfoConfig, FaqItem } from '../utils/bookingLogic';
+
+interface SocialProofSectionProps {
+  studioInfo: StudioInfoConfig;
+  faqs: FaqItem[];
+}
 
 const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -32,29 +37,11 @@ const TESTIMONIALS = [
   },
 ];
 
-const FAQS = [
-  {
-    id: 'faq-1',
-    question: '¿Cuánto demora un Tratamiento Cerámico o Servicio Pre-Venta?',
-    answer:
-      'La Limpieza Interior toma 1 jornada en nuestro estudio de Duvimioso Terra 2341. El Servicio Pre-Venta y el Pulido de Pintura requieren de 1 a 2 días, mientras que el Tratamiento Cerámico 9H lleva entre 2 y 3 días para asegurar un curado controlado sin exposición a humedad.',
-  },
-  {
-    id: 'faq-2',
-    question: '¿Qué incluye exactamente el Servicio Pre-Venta de $9.500 UYU?',
-    answer:
-      'Incluye descontaminado de carrocería, pulido abrillantado exterior, limpieza detallada de consola, ranuras y superficies interiores, aspirado profundo, limpieza de tapizados y techo, y acondicionamiento de plásticos interiores (válido para vehículos hatch, sedán y SUV).',
-  },
-  {
-    id: 'faq-3',
-    question: '¿Qué medios de pago aceptan en el estudio?',
-    answer:
-      'Aceptamos efectivo, transferencia bancaria (BROU, Itaú, Santander, Scotiabank) y tarjetas de débito o crédito hasta en cuotas a través de Mercado Pago.',
-  },
-];
-
-export const SocialProofSection: React.FC = () => {
-  const [openFaqId, setOpenFaqId] = useState<string | null>('faq-1');
+export const SocialProofSection: React.FC<SocialProofSectionProps> = ({
+  studioInfo,
+  faqs,
+}) => {
+  const [openFaqId, setOpenFaqId] = useState<string | null>(faqs[0]?.id ?? null);
 
   return (
     <section id="resenas" className="bg-black py-16 sm:py-24 border-b border-white/10">
@@ -72,7 +59,7 @@ export const SocialProofSection: React.FC = () => {
               <div className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-neutral-400 font-medium mb-3">
                 <span>02 · CERTIFICACIONES Y RESPALDO</span>
                 <span aria-hidden="true">·</span>
-                <span className="tabular-nums">CALIFICACIÓN {STUDIO_INFO.googleRating} / 5.0</span>
+                <span className="tabular-nums">CALIFICACIÓN {studioInfo.googleRating} / 5.0</span>
               </div>
 
               <div
@@ -84,14 +71,13 @@ export const SocialProofSection: React.FC = () => {
                 ))}
               </div>
 
-              {/* Exact Required Social Proof Headline */}
               <h2 className="font-display uppercase text-3xl sm:text-5xl font-bold text-white tracking-tight leading-[0.96]">
-                Más de 300 reseñas 5 Estrellas en Google.
+                {studioInfo.googleBannerTitle}
               </h2>
 
               <p className="text-sm sm:text-base text-neutral-400 font-light mt-3 max-w-2xl">
-                Estudio verificado con más de {STUDIO_INFO.instagramFollowers} seguidores en{' '}
-                <span className="text-white font-normal">{STUDIO_INFO.instagramHandle}</span>{' '}
+                Estudio verificado con más de {studioInfo.instagramFollowers} seguidores en{' '}
+                <span className="text-white font-normal">{studioInfo.instagramHandle}</span>{' '}
                 y estándares de iluminación hexagonal para control de calidad en Montevideo.
               </p>
             </div>
@@ -100,17 +86,19 @@ export const SocialProofSection: React.FC = () => {
             <div className="flex items-center gap-4 pt-6 lg:pt-0 border-t lg:border-t-0 border-white/10 shrink-0">
               <img
                 src="/assets/aistudio/_D7A35198-53D8-41F5-81EF-65BEE1C9E390__e118badc.png"
-                alt="Detailing Company Uruguay"
+                alt={studioInfo.name}
                 referrerPolicy="no-referrer"
                 className="w-14 h-14 rounded-full object-cover border border-white/20 shrink-0"
               />
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-base font-bold text-white">detailingcompany.uy</span>
+                  <span className="text-base font-bold text-white">
+                    {studioInfo.instagramHandle.replace('@', '')}
+                  </span>
                   <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
                 </div>
                 <p className="text-xs text-neutral-400 mt-1 tabular-nums">
-                  {STUDIO_INFO.instagramFollowers} seguidores · 84 publicaciones · Montevideo
+                  {studioInfo.instagramFollowers} seguidores · 84 publicaciones · Montevideo
                 </p>
               </div>
             </div>
@@ -155,7 +143,7 @@ export const SocialProofSection: React.FC = () => {
             PREGUNTAS FRECUENTES DE CLIENTES
           </p>
           <div className="space-y-3">
-            {FAQS.map((faq) => {
+            {faqs.map((faq) => {
               const isOpen = openFaqId === faq.id;
               return (
                 <div

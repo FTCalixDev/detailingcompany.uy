@@ -1,9 +1,10 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { ArrowUpRight, ShieldCheck, Sparkles, Star, MapPin } from 'lucide-react';
-import { STUDIO_INFO } from '../utils/bookingLogic';
+import { StudioInfoConfig } from '../utils/bookingLogic';
 
 interface HeroSectionProps {
+  studioInfo: StudioInfoConfig;
   onExploreServices: () => void;
   onBookNow: () => void;
 }
@@ -11,6 +12,7 @@ interface HeroSectionProps {
 const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
+  studioInfo,
   onExploreServices,
   onBookNow,
 }) => {
@@ -50,11 +52,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             transition={{ duration: 0.55, delay: 0.05, ease: EASE_OUT_EXPO }}
             className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] sm:text-xs tracking-[0.22em] uppercase text-neutral-300 font-medium mb-5"
           >
-            <span>MONTEVIDEO, URUGUAY</span>
+            <span>{studioInfo.heroKicker}</span>
             <span aria-hidden="true">·</span>
-            <span>DETAIL &amp; PROTECTION STUDIO</span>
-            <span aria-hidden="true">·</span>
-            <span className="tabular-nums">WHATSAPP {STUDIO_INFO.phoneDisplay}</span>
+            <span className="tabular-nums">WHATSAPP {studioInfo.phoneDisplay}</span>
           </motion.div>
 
           {/* Tall Condensed Uppercase Display Headline */}
@@ -64,9 +64,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             transition={{ duration: 0.65, delay: 0.12, ease: EASE_OUT_EXPO }}
             className="font-display uppercase text-5xl sm:text-7xl lg:text-[84px] font-bold tracking-[-0.01em] text-white leading-[1.05] sm:leading-[1.0] max-w-4xl mb-6"
           >
-            PROTECCIÓN Y ESTÉTICA
+            {studioInfo.heroHeadlineLine1}
             <br />
-            AL MÁS ALTO NIVEL.
+            {studioInfo.heroHeadlineLine2}
           </motion.h1>
 
           {/* Refined Light-Weight Subtitle */}
@@ -76,8 +76,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             transition={{ duration: 0.6, delay: 0.2, ease: EASE_OUT_EXPO }}
             className="text-base sm:text-xl text-neutral-300 font-light leading-relaxed max-w-xl mb-10"
           >
-            Especialistas en Tratamientos Cerámicos, Corrección de Pintura,
-            Limpiezas Profundas y Láminas de Seguridad en Montevideo.
+            {studioInfo.heroSubtitle}
           </motion.p>
 
           {/* Bottom CTA Button + Unboxed Technical Specifications */}
@@ -130,10 +129,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <Star className="w-4 h-4 text-white fill-white shrink-0 mt-0.5" />
             <div>
               <p className="font-display uppercase text-lg font-bold text-white tracking-wide tabular-nums leading-none">
-                5.0 ★ EN GOOGLE
+                {studioInfo.googleRating} ★ EN GOOGLE
               </p>
               <p className="text-xs text-neutral-400 mt-1 tabular-nums">
-                Más de 300 reseñas verificadas
+                Más de {studioInfo.googleReviewsCount} reseñas verificadas
               </p>
             </div>
           </div>
@@ -169,7 +168,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 ESTUDIO MONTEVIDEO
               </p>
               <p className="text-xs text-neutral-400 mt-1">
-                Duvimioso Terra 2341 · Tres Cruces
+                {studioInfo.address.split(',')[0]}
               </p>
             </div>
           </div>

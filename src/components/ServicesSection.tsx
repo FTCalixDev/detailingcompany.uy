@@ -10,15 +10,18 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import {
-  SERVICES,
   ServiceItem,
+  ServiceIconType,
   VehicleCategory,
-  VEHICLE_CATEGORY_LABELS,
+  VehicleCategoryItem,
+  getCategoryLabel,
   calculateServicePrice,
   formatUyuCurrency,
 } from '../utils/bookingLogic';
 
 interface ServicesSectionProps {
+  services: ServiceItem[];
+  vehicleCategories: VehicleCategoryItem[];
   selectedCategory: VehicleCategory;
   onSelectCategory: (category: VehicleCategory) => void;
   onSelectServiceForBooking: (serviceId: ServiceItem['id']) => void;
@@ -26,7 +29,7 @@ interface ServicesSectionProps {
 
 const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-const SERVICE_ICONS: Record<ServiceItem['id'], React.ReactNode> = {
+const SERVICE_ICONS: Record<ServiceIconType, React.ReactNode> = {
   ceramico: <Shield className="w-5 h-5 text-white" strokeWidth={1.6} />,
   pulido: <Sparkles className="w-5 h-5 text-white" strokeWidth={1.6} />,
   interior: <SprayCan className="w-5 h-5 text-white" strokeWidth={1.6} />,
@@ -34,12 +37,14 @@ const SERVICE_ICONS: Record<ServiceItem['id'], React.ReactNode> = {
 };
 
 export const ServicesSection: React.FC<ServicesSectionProps> = ({
+  services,
+  vehicleCategories,
   selectedCategory,
   onSelectCategory,
   onSelectServiceForBooking,
 }) => {
-  const [expandedServiceId, setExpandedServiceId] = useState<ServiceItem['id'] | null>(null);
-  const categories: VehicleCategory[] = ['hatch_sedan', 'suv', 'pickup'];
+  const [expandedServiceId, setExpandedServiceId] = useState<string | null>(null);
+  const selectedCategoryLabel = getCategoryLabel(selectedCategory, vehicleCategories);
 
   return (
     <section id="servicios" className="bg-neutral-950 py-16 sm:py-24 border-b border-white/10">
@@ -68,22 +73,22 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
           <div
             role="group"
             aria-label="Seleccionar porte del vehículo"
-            className="w-full sm:w-auto grid grid-cols-3 gap-1 p-1 bg-black border border-white/15 rounded-full"
+            className="w-full sm:w-auto flex flex-wrap sm:flex-nowrap items-center gap-1 p-1 bg-black border border-white/15 rounded-2xl sm:rounded-full"
           >
-            {categories.map((cat) => {
-              const isActive = selectedCategory === cat;
+            {vehicleCategories.map((cat) => {
+              const isActive = selectedCategory === cat.id;
               return (
                 <button
-                  key={cat}
+                  key={cat.id}
                   type="button"
-                  onClick={() => onSelectCategory(cat)}
-                  className={`min-h-[40px] px-3 sm:px-5 py-2 text-xs font-semibold tracking-wide rounded-full transition-colors whitespace-nowrap truncate cursor-pointer ${
+                  onClick={() => onSelectCategory(cat.id)}
+                  className={`flex-1 sm:flex-initial min-h-[40px] px-3 sm:px-5 py-2 text-xs font-semibold tracking-wide rounded-full transition-colors whitespace-nowrap truncate cursor-pointer ${
                     isActive
                       ? 'bg-white text-black'
                       : 'text-neutral-400 hover:text-white'
                   }`}
                 >
-                  {VEHICLE_CATEGORY_LABELS[cat]}
+                  {cat.label}
                 </button>
               );
             })}
@@ -92,9 +97,9 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
         {/* Clean Architectural Services Grid with Staggered Reveal */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {SERVICES.map((service, index) => {
-            const price = calculateServicePrice(service.id, selectedCategory);
-            const [leftOffset, topOffset] = service.imageCropStyle.origin.split(' ');
+          {services.map((service, index) => {
+            const price = calculateServicePrice(service.id, selectedCategory, services);
+            const [leftOffset, topOffset] = (service.imageCropStyle.origin || '-2% -8%').split(' ');
             const isExpanded = expandedServiceId === service.id;
 
             return (
@@ -132,10 +137,10 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-[11px] tracking-[0.16em] uppercase text-neutral-400 tabular-nums">
-                          0{index + 1} · {service.duration} · {service.warranty}
+                          {String(index + 1).padStart(2, '0')} · {service.duration} · {service.warranty}
                         </span>
                         <div className="w-9 h-9 rounded-full bg-black border border-white/15 flex items-center justify-center shrink-0">
-                          {SERVICE_ICONS[service.id]}
+                          {SERVICE_ICONS[service.iconType || 'ceramico']}
                         </div>
                       </div>
                       <h3 className="font-display uppercase text-2xl sm:text-3xl font-bold text-white mt-1.5 tracking-tight leading-none">
@@ -202,10 +207,10 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                 <div className="pt-5 border-t border-white/10 flex items-center justify-between gap-4">
                   <div>
                     <span className="block text-[11px] uppercase tracking-wider text-neutral-400">
-                      Arancel ({VEHICLE_CATEGORY_LABELS[selectedCategory]})
+                      Arancel ({selectedCategoryLabel})
                     </span>
                     <motion.span
-                      key={`${service.id}-${selectedCategory}`}
+                      key={`${service.id}-${selectedCategory}-${price}`}
                       initial={{ opacity: 0.4, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2 }}
