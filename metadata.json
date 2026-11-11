@@ -1,0 +1,6 @@
+{
+  "name": "Detailing Company — Estética Vehicular Premium",
+  "description": "Tratamientos cerámicos, corrección de pintura y detailing interior de alto nivel en Montevideo, Uruguay.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
